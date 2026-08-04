@@ -11,7 +11,7 @@ import {
 import { INVESTMENT_REVIEW_REPOSITORY } from './investment-review.repository';
 import type { InvestmentReviewRepository } from './investment-review.repository';
 
-export interface InvestmentReviewOutput {
+export interface InvestmentReviewListOutput {
   id: string;
   investmentId: string;
   overallExperienceRating: number;
@@ -27,7 +27,17 @@ export interface InvestmentReviewOutput {
   updatedAt: Date;
 }
 
-function toOutput(review: InvestmentReview): InvestmentReviewOutput {
+export interface InvestmentReviewOutput extends InvestmentReviewListOutput {
+  attachments: Array<{
+    id: string;
+    originalFileName: string;
+    mimeType: string;
+    fileSize: number;
+    createdAt: Date;
+  }>;
+}
+
+function toListOutput(review: InvestmentReview): InvestmentReviewListOutput {
   return {
     id: review.id,
     investmentId: review.investmentId,
@@ -45,16 +55,31 @@ function toOutput(review: InvestmentReview): InvestmentReviewOutput {
   };
 }
 
+function toOutput(review: InvestmentReview): InvestmentReviewOutput {
+  return {
+    ...toListOutput(review),
+    attachments: review.attachments.map(
+      ({ id, originalFileName, mimeType, fileSize, createdAt }) => ({
+        id,
+        originalFileName,
+        mimeType,
+        fileSize,
+        createdAt,
+      }),
+    ),
+  };
+}
+
 @Injectable()
 export class ListPendingInvestmentReviewsUseCase {
   constructor(
     @Inject(INVESTMENT_REVIEW_REPOSITORY)
     private readonly reviews: InvestmentReviewRepository,
   ) {}
-  async execute(): Promise<InvestmentReviewOutput[]> {
+  async execute(): Promise<InvestmentReviewListOutput[]> {
     return (
       await this.reviews.findByStatus(InvestmentReviewStatus.PENDING_MODERATION)
-    ).map(toOutput);
+    ).map(toListOutput);
   }
 }
 

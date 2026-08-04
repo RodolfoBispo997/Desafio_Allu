@@ -8,6 +8,16 @@ export enum InvestmentReviewStatus {
 
 export class InvestmentReviewDomainError extends Error {}
 
+export interface InvestmentReviewAttachment {
+  id: string;
+  reviewId: string;
+  originalFileName: string;
+  storageKey: string;
+  mimeType: string;
+  fileSize: number;
+  createdAt: Date;
+}
+
 export interface CreateInvestmentReviewProperties {
   investmentId: string;
   overallExperienceRating: number;
@@ -25,6 +35,7 @@ export interface InvestmentReviewProperties extends CreateInvestmentReviewProper
   moderationReason: string | null;
   createdAt: Date;
   updatedAt: Date;
+  attachments?: InvestmentReviewAttachment[];
 }
 
 export class InvestmentReview {
@@ -66,6 +77,7 @@ export class InvestmentReview {
       moderationReason: null,
       createdAt: now,
       updatedAt: now,
+      attachments: [],
     });
   }
 
@@ -111,6 +123,9 @@ export class InvestmentReview {
   }
   get updatedAt(): Date {
     return this.properties.updatedAt;
+  }
+  get attachments(): InvestmentReviewAttachment[] {
+    return this.properties.attachments ?? [];
   }
 
   approve(date = new Date()): void {

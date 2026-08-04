@@ -3,6 +3,12 @@ import {
   ApplicationError,
   ApplicationErrorCode,
 } from '../../../shared/application/application-error';
+import { FILE_STORAGE } from '../../../shared/storage/file-storage';
+import type {
+  FileStorage,
+  FileToStore,
+  StoredFile,
+} from '../../../shared/storage/file-storage';
 import { INVESTMENT_REPOSITORY } from '../../investments/application/investment.repository';
 import type { InvestmentRepository } from '../../investments/application/investment.repository';
 import {
@@ -41,6 +47,7 @@ export interface SubmitInvestmentReviewInput {
   processEaseRating: number;
   comment: string;
   policyAccepted: boolean;
+  attachments?: FileToStore[];
 }
 
 @Injectable()
@@ -113,6 +120,7 @@ export class SubmitInvestmentReviewUseCase {
     private readonly reviews: InvestmentReviewRepository,
     @Inject(INVESTMENT_REVIEW_SUBMISSION_REPOSITORY)
     private readonly submission: InvestmentReviewSubmissionRepository,
+    @Inject(FILE_STORAGE) private readonly storage: FileStorage,
   ) {}
   async execute(input: SubmitInvestmentReviewInput): Promise<{ id: string }> {
     const invitation = await this.invitations.findByToken(input.token);
@@ -152,6 +160,7 @@ export class SubmitInvestmentReviewUseCase {
         'Policy acceptance is required.',
         ApplicationErrorCode.UNPROCESSABLE,
       );
+    this.validateAttachments(input.attachments ?? []);
     let review: InvestmentReview;
     try {
       review = InvestmentReview.create({
@@ -171,12 +180,49 @@ export class SubmitInvestmentReviewUseCase {
         );
       throw error;
     }
-    invitation.markAsUsed();
-    await this.submission.submit(
-      review,
-      invitation.id,
-      invitation.usedAt as Date,
-    );
+    const storedFiles: StoredFile[] = [];
+    try {
+      for (const attachment of input.attachments ?? [])
+        storedFiles.push(await this.storage.save(attachment));
+      invitation.markAsUsed();
+      await this.submission.submit(
+        review,
+        invitation.id,
+        invitation.usedAt as Date,
+        storedFiles,
+      );
+    } catch (error) {
+      await Promise.all(
+        storedFiles.map((file) =>
+          this.storage.delete(file.storageKey).catch(() => undefined),
+        ),
+      );
+      throw error;
+    }
     return { id: review.id };
+  }
+
+  private validateAttachments(attachments: FileToStore[]): void {
+    if (attachments.length > 3)
+      throw new ApplicationError(
+        'A maximum of 3 attachments is allowed.',
+        ApplicationErrorCode.UNPROCESSABLE,
+      );
+    for (const attachment of attachments) {
+      if (
+        !['application/pdf', 'image/jpeg', 'image/png'].includes(
+          attachment.mimeType,
+        )
+      )
+        throw new ApplicationError(
+          'Attachment MIME type is not allowed.',
+          ApplicationErrorCode.UNPROCESSABLE,
+        );
+      if (attachment.fileSize > 5 * 1024 * 1024)
+        throw new ApplicationError(
+          'Attachment exceeds the 5 MB limit.',
+          ApplicationErrorCode.UNPROCESSABLE,
+        );
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { InvestmentReviewsModule } from '../investment-reviews/investment-reviews.module';
 import { InvestmentsModule } from '../investments/investments.module';
+import { StorageModule } from '../../shared/storage/storage.module';
 import { INVESTMENT_REVIEW_INVITATION_REPOSITORY } from './application/investment-review-invitation.repository';
 import {
   GetInvestmentReviewInvitationUseCase,
@@ -10,7 +11,7 @@ import { InvestmentReviewInvitationPrismaRepository } from './infrastructure/inv
 import { ReviewInvitationsController } from './presentation/review-invitations.controller';
 
 @Module({
-  imports: [InvestmentsModule, InvestmentReviewsModule],
+  imports: [InvestmentsModule, InvestmentReviewsModule, StorageModule],
   controllers: [ReviewInvitationsController],
   providers: [
     {

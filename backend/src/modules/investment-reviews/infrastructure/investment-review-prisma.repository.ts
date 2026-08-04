@@ -17,6 +17,7 @@ import {
   InvestmentReviewStatus,
 } from '../domain/investment-review';
 import { InvestmentReviewPrismaMapper } from './investment-review-prisma.mapper';
+import type { StoredFile } from '../../../shared/storage/file-storage';
 
 const investmentReviewStatusMap: Record<
   InvestmentReviewStatus,
@@ -37,6 +38,7 @@ export class InvestmentReviewPrismaRepository
   async findById(id: string): Promise<InvestmentReview | null> {
     const record = await this.prisma.investmentReview.findUnique({
       where: { id },
+      include: { attachments: true },
     });
     return record ? InvestmentReviewPrismaMapper.toDomain(record) : null;
   }
@@ -73,11 +75,15 @@ export class InvestmentReviewPrismaRepository
     review: InvestmentReview,
     invitationId: string,
     usedAt: Date,
+    attachments: StoredFile[],
   ): Promise<void> {
     try {
       await this.prisma.$transaction(async (transaction) => {
         await transaction.investmentReview.create({
-          data: this.toPersistence(review),
+          data: {
+            ...this.toPersistence(review),
+            attachments: { create: attachments },
+          },
         });
         await transaction.investmentReviewInvitation.update({
           where: { id: invitationId },

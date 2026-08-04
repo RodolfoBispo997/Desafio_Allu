@@ -1,5 +1,6 @@
 import {
   InvestmentReview as PrismaInvestmentReview,
+  InvestmentReviewAttachment as PrismaInvestmentReviewAttachment,
   InvestmentReviewStatus as PrismaInvestmentReviewStatus,
 } from '@prisma/client';
 import {
@@ -17,10 +18,15 @@ const reviewStatusMap: Record<
 };
 
 export class InvestmentReviewPrismaMapper {
-  static toDomain(record: PrismaInvestmentReview): InvestmentReview {
+  static toDomain(
+    record: PrismaInvestmentReview & {
+      attachments?: PrismaInvestmentReviewAttachment[];
+    },
+  ): InvestmentReview {
     return InvestmentReview.restore({
       ...record,
       status: reviewStatusMap[record.status],
+      attachments: record.attachments,
     });
   }
 }

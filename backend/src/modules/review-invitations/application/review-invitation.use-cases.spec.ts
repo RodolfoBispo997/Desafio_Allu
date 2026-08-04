@@ -42,6 +42,7 @@ function createUseCase(overrides?: {
   invitation?: InvestmentReviewInvitation | null;
   investment?: Investment | null;
   existingReview?: object | null;
+  submissionError?: Error;
 }) {
   const invitations = {
     findByToken: jest
@@ -66,15 +67,33 @@ function createUseCase(overrides?: {
       .fn()
       .mockResolvedValue(overrides?.existingReview ?? null),
   };
-  const submission = { submit: jest.fn().mockResolvedValue(undefined) };
+  const submission = {
+    submit: jest
+      .fn()
+      .mockImplementation(() =>
+        overrides?.submissionError
+          ? Promise.reject(overrides.submissionError)
+          : Promise.resolve(undefined),
+      ),
+  };
+  const storage = {
+    save: jest
+      .fn()
+      .mockImplementation((file) =>
+        Promise.resolve({ ...file, storageKey: 'stored-file.pdf' }),
+      ),
+    delete: jest.fn().mockResolvedValue(undefined),
+  };
   return {
     useCase: new SubmitInvestmentReviewUseCase(
       invitations,
       investments,
       reviews as never,
       submission,
+      storage,
     ),
     submission,
+    storage,
   };
 }
 
@@ -140,5 +159,100 @@ describe('SubmitInvestmentReviewUseCase', () => {
         code: ApplicationErrorCode.UNPROCESSABLE,
       }),
     );
+  });
+  it('accepts attachment metadata', async () => {
+    const { useCase, submission } = createUseCase();
+    await useCase.execute({
+      ...input,
+      attachments: [
+        {
+          originalFileName: 'receipt.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 20,
+          buffer: Buffer.from('pdf'),
+        },
+      ],
+    });
+    expect(submission.submit).toHaveBeenCalledWith(
+      expect.anything(),
+      'invitation-id',
+      expect.any(Date),
+      [expect.objectContaining({ storageKey: 'stored-file.pdf' })],
+    );
+  });
+  it.each([
+    [
+      [
+        {
+          originalFileName: 'a.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 1,
+          buffer: Buffer.alloc(1),
+        },
+        {
+          originalFileName: 'b.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 1,
+          buffer: Buffer.alloc(1),
+        },
+        {
+          originalFileName: 'c.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 1,
+          buffer: Buffer.alloc(1),
+        },
+        {
+          originalFileName: 'd.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 1,
+          buffer: Buffer.alloc(1),
+        },
+      ],
+    ],
+    [
+      [
+        {
+          originalFileName: 'a.txt',
+          mimeType: 'text/plain',
+          fileSize: 1,
+          buffer: Buffer.alloc(1),
+        },
+      ],
+    ],
+    [
+      [
+        {
+          originalFileName: 'a.pdf',
+          mimeType: 'application/pdf',
+          fileSize: 5 * 1024 * 1024 + 1,
+          buffer: Buffer.alloc(1),
+        },
+      ],
+    ],
+  ])('rejects invalid attachments', async (attachments) => {
+    const { useCase, storage } = createUseCase();
+    await expect(useCase.execute({ ...input, attachments })).rejects.toEqual(
+      expect.objectContaining({ code: ApplicationErrorCode.UNPROCESSABLE }),
+    );
+    expect(storage.save).not.toHaveBeenCalled();
+  });
+  it('removes stored files when persistence fails', async () => {
+    const { useCase, storage } = createUseCase({
+      submissionError: new Error('database failed'),
+    });
+    await expect(
+      useCase.execute({
+        ...input,
+        attachments: [
+          {
+            originalFileName: 'receipt.pdf',
+            mimeType: 'application/pdf',
+            fileSize: 20,
+            buffer: Buffer.from('pdf'),
+          },
+        ],
+      }),
+    ).rejects.toThrow('database failed');
+    expect(storage.delete).toHaveBeenCalledWith('stored-file.pdf');
   });
 });

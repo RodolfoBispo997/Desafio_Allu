@@ -76,3 +76,13 @@ Desafio técnico Full Stack para avaliação de investimentos.
 - Swagger: http://localhost:3333/api/docs
 
 Opcionalmente, abra o Prisma Studio com `cd backend` e `npx prisma studio`.
+
+## Anexos
+
+- Até 3 arquivos opcionais por avaliação, em PDF, JPEG ou PNG.
+- Cada arquivo pode ter no máximo 5 MB.
+- O desafio usa storage local em `backend/uploads`; em produção, prefira object storage (S3, GCS ou Azure Blob).
+
+## Decisões e evoluções
+
+Para produção, considere validação por magic bytes, scanning de malware, URLs assinadas para acesso privado, lifecycle/retention e criptografia conforme a infraestrutura.

@@ -2,6 +2,7 @@ import {
   InvestmentReview,
   InvestmentReviewStatus,
 } from '../domain/investment-review';
+import type { StoredFile } from '../../../shared/storage/file-storage';
 
 export const INVESTMENT_REVIEW_REPOSITORY = Symbol(
   'INVESTMENT_REVIEW_REPOSITORY',
@@ -22,5 +23,6 @@ export interface InvestmentReviewSubmissionRepository {
     review: InvestmentReview,
     invitationId: string,
     usedAt: Date,
+    attachments: StoredFile[],
   ): Promise<void>;
 }

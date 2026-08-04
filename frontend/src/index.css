@@ -11,8 +11,8 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
@@ -64,6 +64,101 @@
 
 body {
   margin: 0;
+}
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  text-align: left;
+}
+.card {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+.grid strong {
+  display: block;
+  color: var(--text-h);
+}
+.form {
+  display: grid;
+  gap: 16px;
+}
+.form label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-h);
+}
+.form textarea {
+  min-height: 110px;
+  padding: 10px;
+}
+.button {
+  display: inline-block;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+}
+.secondary {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+.danger {
+  background: #b33;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.error,
+.error-state {
+  color: #c33;
+}
+.success {
+  max-width: 620px;
+}
+.rating {
+  border: 0;
+  padding: 0;
+}
+.rating button {
+  border: 0;
+  background: none;
+  font-size: 28px;
+  color: #aaa;
+  cursor: pointer;
+}
+.rating button.selected {
+  color: #e8a300;
+}
+.check {
+  display: flex !important;
+  gap: 8px;
+  align-items: center;
+}
+.eyebrow {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .page {
+    padding: 28px 16px;
+  }
 }
 
 h1,

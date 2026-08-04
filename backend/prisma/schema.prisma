@@ -6,3 +6,87 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum InvestmentStatus {
+  ACTIVE
+  CLOSED
+}
+
+enum InvestmentClosureReason {
+  REACHED_MATURITY
+  REDEEMED_EARLY
+  OTHER
+}
+
+enum InvestmentReviewStatus {
+  PENDING_MODERATION
+  APPROVED
+  REJECTED
+}
+
+model Investment {
+  id             String                       @id @default(uuid()) @db.Uuid
+  customerName   String
+  productName    String
+  investedAmount Decimal                      @db.Decimal(14, 2)
+  startedAt      DateTime
+  closedAt       DateTime?
+  status         InvestmentStatus
+  closureReason  InvestmentClosureReason?
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  invitations    InvestmentReviewInvitation[]
+  review         InvestmentReview?
+
+  @@map("investments")
+}
+
+model InvestmentReviewInvitation {
+  id           String     @id @default(uuid()) @db.Uuid
+  investmentId String     @db.Uuid
+  token        String     @unique
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime   @default(now())
+  investment   Investment @relation(fields: [investmentId], references: [id])
+
+  @@index([investmentId])
+  @@index([expiresAt])
+  @@map("investment_review_invitations")
+}
+
+model InvestmentReview {
+  id                       String                       @id @default(uuid()) @db.Uuid
+  investmentId             String                       @unique @db.Uuid
+  overallExperienceRating  Int
+  informationClarityRating Int
+  processEaseRating        Int
+  comment                  String                       @db.Text
+  policyVersion            String
+  policyAcceptedAt         DateTime
+  status                   InvestmentReviewStatus       @default(PENDING_MODERATION)
+  moderatedAt              DateTime?
+  moderationReason         String?                      @db.Text
+  createdAt                DateTime                     @default(now())
+  updatedAt                DateTime                     @updatedAt
+  investment               Investment                   @relation(fields: [investmentId], references: [id])
+  attachments              InvestmentReviewAttachment[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("investment_reviews")
+}
+
+model InvestmentReviewAttachment {
+  id               String           @id @default(uuid()) @db.Uuid
+  reviewId         String           @db.Uuid
+  originalFileName String
+  storageKey       String           @unique
+  mimeType         String
+  fileSize         Int
+  createdAt        DateTime         @default(now())
+  review           InvestmentReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@map("investment_review_attachments")
+}

@@ -3,9 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './shared/database/database.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '../.env'] }),
-    DatabaseModule,
-  ],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule],
 })
 export class AppModule {}

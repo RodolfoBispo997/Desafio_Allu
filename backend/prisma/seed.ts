@@ -77,6 +77,18 @@ async function main(): Promise<void> {
     closureReason: null,
   });
 
+  await prisma.investmentReview.deleteMany({
+    where: {
+      investmentId: {
+        in: [
+          investmentIds.validInvitation,
+          investmentIds.expiredInvitation,
+          investmentIds.activeInvestment,
+        ],
+      },
+    },
+  });
+
   await prisma.investmentReviewInvitation.upsert({
     where: { token: invitationTokens[0] },
     create: { investmentId: investmentIds.validInvitation, token: invitationTokens[0], expiresAt: futureDate },

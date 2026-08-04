@@ -56,9 +56,12 @@ export function ReviewPage() {
         message: "Não foi possível enviar a avaliação. Tente novamente.",
       }),
   });
-  if (invitation.isLoading)
+
+  if (invitation.isLoading) {
     return <main className="page">Carregando convite…</main>;
-  if (invitation.isError)
+  }
+
+  if (invitation.isError) {
     return (
       <main className="page error-state">
         {errorMessage(
@@ -67,7 +70,17 @@ export function ReviewPage() {
         )}
       </main>
     );
-  if (success)
+  }
+
+  if (!invitation.data) {
+    return (
+      <main className="page error-state">
+        Não foi possível carregar os dados do convite.
+      </main>
+    );
+  }
+
+  if (success) {
     return (
       <main className="page success">
         <h1>Avaliação enviada</h1>
@@ -78,7 +91,10 @@ export function ReviewPage() {
         </p>
       </main>
     );
-  const data = invitation.data!;
+  }
+
+  const data = invitation.data;
+
   const addFiles = (selected: FileList | null) => {
     const next = [...files, ...Array.from(selected ?? [])];
     if (

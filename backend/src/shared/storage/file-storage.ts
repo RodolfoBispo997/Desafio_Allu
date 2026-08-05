@@ -12,8 +12,6 @@ export interface StoredFile {
   fileSize: number;
 }
 
-export const FILE_STORAGE = Symbol('FILE_STORAGE');
-
 export interface FileStorage {
   save(file: FileToStore): Promise<StoredFile>;
   delete(storageKey: string): Promise<void>;

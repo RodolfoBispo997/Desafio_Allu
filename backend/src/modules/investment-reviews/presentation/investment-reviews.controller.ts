@@ -4,12 +4,10 @@ import {
   ApplicationError,
   ApplicationErrorCode,
 } from '../../../shared/application/application-error';
-import {
-  ApproveInvestmentReviewUseCase,
-  GetInvestmentReviewUseCase,
-  ListPendingInvestmentReviewsUseCase,
-  RejectInvestmentReviewUseCase,
-} from '../application/moderation.use-cases';
+import { ApproveInvestmentReviewUseCase } from '../application/use-cases/approve-investment-review/approve-investment-review.use-case';
+import { GetInvestmentReviewUseCase } from '../application/use-cases/get-investment-review/get-investment-review.use-case';
+import { ListPendingInvestmentReviewsUseCase } from '../application/use-cases/list-pending-investment-reviews/list-pending-investment-reviews.use-case';
+import { RejectInvestmentReviewUseCase } from '../application/use-cases/reject-investment-review/reject-investment-review.use-case';
 import { RejectInvestmentReviewDto } from './dto/reject-investment-review.dto';
 
 @ApiTags('investment-reviews')
@@ -36,12 +34,12 @@ export class InvestmentReviewsController {
 
   @Get(':id')
   async get(@Param('id') id: string) {
-    return this.getReview.execute(id);
+    return this.getReview.execute({ id });
   }
 
   @Patch(':id/approve')
   async approve(@Param('id') id: string) {
-    await this.approveReview.execute(id);
+    await this.approveReview.execute({ id });
     return { status: 'approved' };
   }
 
@@ -50,7 +48,7 @@ export class InvestmentReviewsController {
     @Param('id') id: string,
     @Body() dto: RejectInvestmentReviewDto,
   ) {
-    await this.rejectReview.execute(id, dto.reason);
+    await this.rejectReview.execute({ id, reason: dto.reason });
     return { status: 'rejected' };
   }
 }

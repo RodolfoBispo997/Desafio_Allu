@@ -8,10 +8,7 @@ import {
   ApplicationError,
   ApplicationErrorCode,
 } from '../../../shared/application/application-error';
-import {
-  InvestmentReviewRepository,
-  InvestmentReviewSubmissionRepository,
-} from '../application/investment-review.repository';
+import { InvestmentReviewRepository } from '../application/investment-review.repository';
 import {
   InvestmentReview,
   InvestmentReviewStatus,
@@ -30,9 +27,7 @@ const investmentReviewStatusMap: Record<
 };
 
 @Injectable()
-export class InvestmentReviewPrismaRepository
-  implements InvestmentReviewRepository, InvestmentReviewSubmissionRepository
-{
+export class InvestmentReviewPrismaRepository implements InvestmentReviewRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<InvestmentReview | null> {

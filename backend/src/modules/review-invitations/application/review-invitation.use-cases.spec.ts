@@ -5,7 +5,7 @@ import {
   InvestmentStatus,
 } from '../../investments/domain/investment';
 import { InvestmentReviewInvitation } from '../domain/investment-review-invitation';
-import { SubmitInvestmentReviewUseCase } from './review-invitation.use-cases';
+import { SubmitInvestmentReviewUseCase } from './use-cases/submit-investment-review/submit-investment-review.use-case';
 
 const input = {
   token: 'token',
@@ -63,11 +63,12 @@ function createUseCase(overrides?: {
       ),
   };
   const reviews = {
+    findById: jest.fn(),
     findByInvestmentId: jest
       .fn()
       .mockResolvedValue(overrides?.existingReview ?? null),
-  };
-  const submission = {
+    findByStatus: jest.fn(),
+    save: jest.fn(),
     submit: jest
       .fn()
       .mockImplementation(() =>
@@ -88,11 +89,10 @@ function createUseCase(overrides?: {
     useCase: new SubmitInvestmentReviewUseCase(
       invitations,
       investments,
-      reviews as never,
-      submission,
+      reviews,
       storage,
     ),
-    submission,
+    submission: reviews,
     storage,
   };
 }

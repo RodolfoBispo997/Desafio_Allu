@@ -9,10 +9,8 @@ import {
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import {
-  GetInvestmentReviewInvitationUseCase,
-  SubmitInvestmentReviewUseCase,
-} from '../application/review-invitation.use-cases';
+import { GetInvestmentReviewInvitationUseCase } from '../application/use-cases/get-investment-review-invitation/get-investment-review-invitation.use-case';
+import { SubmitInvestmentReviewUseCase } from '../application/use-cases/submit-investment-review/submit-investment-review.use-case';
 import { SubmitInvestmentReviewDto } from './dto/submit-investment-review.dto';
 
 @ApiTags('review-invitations')
@@ -25,7 +23,7 @@ export class ReviewInvitationsController {
   @Get(':token')
   @ApiOperation({ summary: 'Get a review invitation and its investment' })
   async get(@Param('token') token: string) {
-    return this.getInvitation.execute(token);
+    return this.getInvitation.execute({ token });
   }
   @Post(':token/review')
   @ApiOperation({

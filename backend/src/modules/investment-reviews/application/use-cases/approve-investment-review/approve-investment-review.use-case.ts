@@ -3,7 +3,7 @@ import {
   ApplicationError,
   ApplicationErrorCode,
 } from '../../../../../shared/application/application-error';
-import { InvestmentReviewDomainError } from '../../../domain/investment-review';
+import { InvestmentReviewStatus } from '../../../domain/investment-review';
 import type { InvestmentReviewRepository } from '../../investment-review.repository';
 import { ApproveInvestmentReviewInput } from './approve-investment-review.dto';
 
@@ -21,16 +21,12 @@ export class ApproveInvestmentReviewUseCase {
         'Investment review not found.',
         ApplicationErrorCode.NOT_FOUND,
       );
-    try {
-      review.approve();
-    } catch (error) {
-      if (error instanceof InvestmentReviewDomainError)
-        throw new ApplicationError(
-          error.message,
-          ApplicationErrorCode.CONFLICT,
-        );
-      throw error;
-    }
+    if (review.status !== InvestmentReviewStatus.PENDING_MODERATION)
+      throw new ApplicationError(
+        'Only pending reviews can be moderated.',
+        ApplicationErrorCode.CONFLICT,
+      );
+    review.approve();
     await this.reviews.save(review);
   }
 }
